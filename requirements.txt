@@ -1,0 +1,6 @@
+
+# requirements.txt (Dependencies)
+flask
+pandas
+numpy
+scikit-learn
