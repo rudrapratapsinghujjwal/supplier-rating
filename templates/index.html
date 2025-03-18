@@ -4,14 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supplier Rating System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #result {
+            margin-top: 20px;
+            display: none;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .download-btn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Supplier Rating System</h1>
-    <p>Upload a CSV file for analysis.</p>
+    <h2>Supplier Rating System</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload and Analyze</button>
+    <div id="result">
+        <h3>Ratings</h3>
+        <table id="ratingsTable">
+            <thead>
+                <tr>
+                    <th>Supplier #</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button class="download-btn" id="downloadBtn">Download Processed File</button>
+    </div>
     
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Upload</button>
-    </form>
+    <script>
+        function uploadFile() {
+            let fileInput = document.getElementById("fileInput").files[0];
+            if (!fileInput) {
+                alert("Please select a file first.");
+                return;
+            }
+            
+            let formData = new FormData();
+            formData.append("file", fileInput);
+            
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                let tableBody = document.querySelector("#ratingsTable tbody");
+                tableBody.innerHTML = "";
+                data.ratings.forEach((item, index) => {
+                    let row = `<tr><td>${index + 1}</td><td>${item.rating}</td></tr>`;
+                    tableBody.innerHTML += row;
+                });
+                
+                document.getElementById("result").style.display = "block";
+                let downloadBtn = document.getElementById("downloadBtn");
+                downloadBtn.style.display = "block";
+                downloadBtn.onclick = () => window.location.href = data.download_link;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
 </body>
 </html>
